@@ -10,7 +10,7 @@ import (
 
 type Task struct {
 	ID     string `json:"id"`
-	Name   string `json:"name"`
+	Task   string `json:"task"`
 	Status string `json:"status"`
 }
 
@@ -19,10 +19,9 @@ type TaskRequest struct {
 }
 
 var tasks = []Task{} // Список задач
-var globalTask string = "Задача не установлена"
 
 func getTasks(c echo.Context) error {
-	return c.JSON(http.StatusOK, "hello, task: "+globalTask)
+	return c.JSON(http.StatusOK, tasks)
 }
 
 func postTask(c echo.Context) error {
@@ -31,17 +30,15 @@ func postTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
 
-	globalTask = req.Task
-
-	newTask := Task{
+	newTasks := Task{
 		ID:     uuid.NewString(),
-		Name:   req.Task,
+		Task:   req.Task,
 		Status: "active",
 	}
 
-	tasks = append(tasks, newTask)
+	tasks = append(tasks, newTasks)
 
-	return c.JSON(http.StatusCreated, newTask)
+	return c.JSON(http.StatusCreated, newTasks)
 }
 
 func patchTask(c echo.Context) error {
@@ -53,7 +50,7 @@ func patchTask(c echo.Context) error {
 
 	for i, Task := range tasks {
 		if Task.ID == id {
-			tasks[i].Name = req.Task
+			tasks[i].Task = req.Task
 			tasks[i].Status = "active"
 			return c.JSON(http.StatusOK, tasks[i])
 		}
@@ -72,17 +69,12 @@ func deleteTask(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, map[string]string{"error": "Task not found"})
 }
 
-//func getHello(c echo.Context) error {
-//	return c.String(http.StatusOK, "hello, task: "+globalTask)
-//}
-
 func main() {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS())
 
-	//	e.GET("/", getHello)
 	e.GET("/tasks", getTasks)
 	e.POST("/tasks", postTask)
 	e.PATCH("/tasks/:id", patchTask)
