@@ -6,10 +6,29 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
+var db *gorm.DB
+
+func initDB() {
+	dsn := "host=localhost user=postgres password=yourpassword dbname=postgres port=5432 sslmode=disable"
+	var err error
+
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Could not connection to db: %v", err)
+	}
+
+	if err := db.AutoMigrate(&Task{}); err != nil {
+		log.Fatalf("Could not migrate db: %v", err)
+	}
+}
+
 type Task struct {
-	ID     string `json:"id"`
+	ID     string `gorm:"primaryKey" json:"id"`
 	Task   string `json:"task"`
 	Status string `json:"status"`
 }
@@ -18,9 +37,11 @@ type TaskRequest struct {
 	Task string `json:"task"` // Изменили Name на Task для соответствия ТЗ
 }
 
-var tasks = []Task{} // Список задач
-
 func getTasks(c echo.Context) error {
+	var tasks []Task
+	if err := db.Find(&tasks).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not get tasks"})
+	}
 	return c.JSON(http.StatusOK, tasks)
 }
 
@@ -36,7 +57,9 @@ func postTask(c echo.Context) error {
 		Status: "active",
 	}
 
-	tasks = append(tasks, newTasks)
+	if err := db.Create(&newTasks).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not add task"})
+	}
 
 	return c.JSON(http.StatusCreated, newTasks)
 }
@@ -48,28 +71,30 @@ func patchTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
 
-	for i, Task := range tasks {
-		if Task.ID == id {
-			tasks[i].Task = req.Task
-			tasks[i].Status = "active"
-			return c.JSON(http.StatusOK, tasks[i])
-		}
+	var newTask Task
+	if err := db.First(&newTask, "id = ?", id).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Could not find task"})
 	}
-	return c.JSON(http.StatusNotFound, map[string]string{"error": "Task not found"})
+
+	newTask.Task = req.Task
+
+	if err := db.Save(&newTask).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not update task"})
+	}
+	return c.JSON(http.StatusOK, newTask)
 }
 
 func deleteTask(c echo.Context) error {
 	id := c.Param("id")
-	for i, Task := range tasks {
-		if Task.ID == id {
-			tasks = append(tasks[:i], tasks[i+1:]...)
-			return c.NoContent(http.StatusNoContent)
-		}
+
+	if err := db.Delete(&Task{}, "id = ?", id).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not delete task"})
 	}
-	return c.JSON(http.StatusNotFound, map[string]string{"error": "Task not found"})
+	return c.NoContent(http.StatusNoContent)
 }
 
 func main() {
+	initDB()
 	e := echo.New()
 
 	e.Use(middleware.Logger())
