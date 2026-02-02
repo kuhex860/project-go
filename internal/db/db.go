@@ -10,7 +10,7 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() (*gorm.DB, error) {
+func InitDB() *gorm.DB {
 	dsn := "host=localhost user=postgres password=yourpassword dbname=postgres port=5432 sslmode=disable"
 	var err error
 
@@ -19,6 +19,8 @@ func InitDB() (*gorm.DB, error) {
 
 		log.Fatalf("Could not connection to db: %v", err)
 	}
-	DB.AutoMigrate(&TaskService.Task{})
-	return DB, nil
+	if err := DB.AutoMigrate(&TaskService.Task{}); err != nil {
+		log.Fatalf("Failed to auto-migrate database: %v", err)
+	}
+	return DB
 }

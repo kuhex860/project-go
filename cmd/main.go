@@ -32,8 +32,13 @@ import (
 //		e.Start("localhost:8080")
 //	}
 func main() {
-	db.InitDB()
-	db.DB.AutoMigrate(&TaskService.Task{})
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	if err := db.DB.AutoMigrate(&TaskService.Task{}); err != nil {
+		log.Fatalf("Failed to auto-migrate database: %v", err)
+	}
 
 	repo := TaskService.NewTaskRepository(db.DB)
 	service := TaskService.NewTaskService(repo)
