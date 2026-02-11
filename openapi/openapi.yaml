@@ -1,7 +1,9 @@
 openapi: 3.0.0
 info:
-  title: API
+  title: Task Manager API
   version: 1.0.0
+  description: API для управления задачами и пользователями
+
 paths:
   /tasks:
     get:
@@ -27,7 +29,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Task'
+              $ref: '#/components/schemas/TaskCreate'
       responses:
         '201':
           description: The created task
@@ -37,18 +39,18 @@ paths:
                 $ref: '#/components/schemas/Task'
   /tasks/{id}:
     patch:
-      summary: Updated task
+      summary: Update task
       tags:
         - tasks
       parameters:
         - name: id
           in: path
           required: true
-          description: tasks updated
+          description: Task ID
           schema:
             type: string
       requestBody:
-        description: Task updated
+        description: Task update
         required: true
         content:
           application/json:
@@ -56,7 +58,7 @@ paths:
               $ref: '#/components/schemas/TaskUpdate'
       responses:
         '200':
-          description: the updated task
+          description: The updated task
           content:
             application/json:
               schema:
@@ -79,6 +81,87 @@ paths:
           description: Task deleted successfully
         '404':
           description: Task not found
+  /users:
+    get:
+      summary: Get all users
+      tags:
+        - users
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create a new user
+      tags:
+        - users
+      requestBody:
+        description: The user to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: The created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input data
+  /users/{id}:
+    patch:
+      summary: Update user by ID
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+      requestBody:
+        description: Fields to update in the user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: The updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+        '400':
+          description: Invalid input data
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
 components:
   schemas:
     Task:
@@ -86,14 +169,90 @@ components:
       properties:
         id:
           type: string
+          description: Task ID
         task:
           type: string
+          description: Task description
         status:
           type: string
+          description: Task status
+      required:
+        - id
+        - task
+        - status
+
+    TaskCreate:
+      type: object
+      properties:
+        task:
+          type: string
+          description: Task description
+        status:
+          type: string
+          description: Task status
+          default: "active"
+      required:
+        - task
+
     TaskUpdate:
       type: object
       properties:
         task:
           type: string
+          description: Updated task description
         status:
           type: string
+          description: Updated task status
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User unique identifier
+        email:
+          type: string
+          description: User email address
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when user was soft-deleted
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when user was last updated
+      required:
+        - id
+        - email
+        - createdAt
+        - updatedAt
+
+    UserCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email address
+        password:
+          type: string
+          description: Plain text password (will be hashed)
+      required:
+        - email
+        - password
+
+    UserUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+          description: New email address
+        password:
+          type: string
+          description: New password
+      minProperties: 1
+      description: At least one field must be provided for update

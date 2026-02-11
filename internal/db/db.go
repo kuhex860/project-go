@@ -1,26 +1,29 @@
 package db
 
 import (
-	"app/internal/TaskService"
-
-	"github.com/labstack/gommon/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-func InitDB() *gorm.DB {
-	dsn := "host=localhost user=postgres password=yourpassword dbname=postgres port=5432 sslmode=disable"
-	var err error
+func InitDB() error {
+	dsn := "host=localhost user=postgres password=yourpassword dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Moscow"
 
+	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
+		return err
+	}
 
-		log.Fatalf("Could not connection to db: %v", err)
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
 	}
-	if err := DB.AutoMigrate(&TaskService.Task{}); err != nil {
-		log.Fatalf("Failed to auto-migrate database: %v", err)
+
+	if err = sqlDB.Ping(); err != nil {
+		return err
 	}
-	return DB
+
+	return nil
 }
