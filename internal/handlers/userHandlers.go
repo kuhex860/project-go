@@ -4,42 +4,41 @@ import (
 	"app/internal/UserService"
 	"app/internal/web/users"
 	"context"
+	"time"
 )
 
 type UserHandler struct {
 	service UserService.UserService
 }
 
-func (h *UserHandler) GetUsers(ctx context.Context, request users.GetUsersRequestObject) (users.GetUsersResponseObject, error) {
-	allUsers, err := h.service.GetALLUsers()
+func (u UserHandler) GetUsers(ctx context.Context, request users.GetUsersRequestObject) (users.GetUsersResponseObject, error) {
+	allUsers, err := u.service.GetAllUsers()
 	if err != nil {
 		return nil, err
 	}
-
 	response := users.GetUsers200JSONResponse{}
-	for _, usr := range allUsers {
-		user := users.User{
-			Id:        usr.ID,
-			Email:     usr.Email,
-			CreatedAt: usr.CreatedAt,
-			UpdatedAt: usr.UpdatedAt,
-		}
 
+	for _, user := range allUsers {
+		user := users.User{
+			Id:        user.ID,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt,
+		}
 		response = append(response, user)
 	}
 	return response, nil
 }
 
-func (h *UserHandler) PostUsers(ctx context.Context, request users.PostUsersRequestObject) (users.PostUsersResponseObject, error) {
-	userRequest := request.Body
-	if userRequest == nil || userRequest.Email == "" || userRequest.Password == "" {
-		return users.PostUsers400Response{}, nil
+func (u UserHandler) PostUsers(ctx context.Context, request users.PostUsersRequestObject) (users.PostUsersResponseObject, error) {
+	user := request.Body
+	Create := UserService.User{
+		Email:     user.Email,
+		Password:  user.Password,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
-	createdUser, err := h.service.CreateUser(userRequest.Email, userRequest.Password)
+	createdUser, err := u.service.CreateUser(Create.Email, Create.Password)
 	if err != nil {
-		if err.Error() == "user with this email already exists" {
-			return users.PostUsers400Response{}, nil
-		}
 		return nil, err
 	}
 	response := users.PostUsers201JSONResponse{
@@ -51,40 +50,30 @@ func (h *UserHandler) PostUsers(ctx context.Context, request users.PostUsersRequ
 	return response, nil
 }
 
-func (h *UserHandler) DeleteUsersId(ctx context.Context, request users.DeleteUsersIdRequestObject) (users.DeleteUsersIdResponseObject, error) {
+func (u UserHandler) DeleteUsersId(ctx context.Context, request users.DeleteUsersIdRequestObject) (users.DeleteUsersIdResponseObject, error) {
 	id := request.Id
-	err := h.service.DeleteUser(id)
+	err := u.service.DeleteUser(id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return users.DeleteUsersId404Response{}, nil
 		}
-		return nil, err
 	}
 	return users.DeleteUsersId204Response{}, nil
 }
 
-func (h *UserHandler) PatchUsersId(ctx context.Context, request users.PatchUsersIdRequestObject) (users.PatchUsersIdResponseObject, error) {
+func (u UserHandler) PatchUsersId(ctx context.Context, request users.PatchUsersIdRequestObject) (users.PatchUsersIdResponseObject, error) {
 	id := request.Id
-	userRequest := request.Body
-	if userRequest == nil || (userRequest.Email == nil && userRequest.Password == nil) {
-		return users.PatchUsersId400Response{}, nil
+	user := request.Body
+	update := UserService.User{
+		Email: *user.Email,
 	}
-	update := UserService.UserUpdate{
-		Email:    userRequest.Email,
-		Password: userRequest.Password,
-	}
-	updatedUser, err := h.service.UpdateUser(id, update)
+	updatedUser, err := u.service.UpdateUser(id, update.Email)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return users.PatchUsersId404Response{}, nil
 		}
-		if err.Error() == "email already in use" {
-			return users.PatchUsersId400Response{}, nil
-		}
-		return nil, err
 	}
 	response := users.PatchUsersId200JSONResponse{
-		Id:        updatedUser.ID,
 		Email:     updatedUser.Email,
 		CreatedAt: updatedUser.CreatedAt,
 		UpdatedAt: updatedUser.UpdatedAt,

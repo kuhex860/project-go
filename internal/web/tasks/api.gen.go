@@ -16,19 +16,36 @@ import (
 
 // Task defines model for Task.
 type Task struct {
-	Id     *string `json:"id,omitempty"`
+	// Id Task ID
+	Id string `json:"id"`
+
+	// Status Task status
+	Status string `json:"status"`
+
+	// Task Task description
+	Task string `json:"task"`
+}
+
+// TaskCreate defines model for TaskCreate.
+type TaskCreate struct {
+	// Status Task status
 	Status *string `json:"status,omitempty"`
-	Task   *string `json:"task,omitempty"`
+
+	// Task Task description
+	Task string `json:"task"`
 }
 
 // TaskUpdate defines model for TaskUpdate.
 type TaskUpdate struct {
+	// Status Updated task status
 	Status *string `json:"status,omitempty"`
-	Task   *string `json:"task,omitempty"`
+
+	// Task Updated task description
+	Task *string `json:"task,omitempty"`
 }
 
 // PostTasksJSONRequestBody defines body for PostTasks for application/json ContentType.
-type PostTasksJSONRequestBody = Task
+type PostTasksJSONRequestBody = TaskCreate
 
 // PatchTasksIdJSONRequestBody defines body for PatchTasksId for application/json ContentType.
 type PatchTasksIdJSONRequestBody = TaskUpdate
@@ -44,7 +61,7 @@ type ServerInterface interface {
 	// Delete a task
 	// (DELETE /tasks/{id})
 	DeleteTasksId(ctx echo.Context, id string) error
-	// Updated task
+	// Update task
 	// (PATCH /tasks/{id})
 	PatchTasksId(ctx echo.Context, id string) error
 }
@@ -233,7 +250,7 @@ type StrictServerInterface interface {
 	// Delete a task
 	// (DELETE /tasks/{id})
 	DeleteTasksId(ctx context.Context, request DeleteTasksIdRequestObject) (DeleteTasksIdResponseObject, error)
-	// Updated task
+	// Update task
 	// (PATCH /tasks/{id})
 	PatchTasksId(ctx context.Context, request PatchTasksIdRequestObject) (PatchTasksIdResponseObject, error)
 }

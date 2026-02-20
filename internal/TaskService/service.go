@@ -17,40 +17,37 @@ type taskService struct {
 func NewTaskService(r TaskRepository) TaskService {
 	return &taskService{repo: r}
 }
-
-func (t *taskService) CreateTask(task string) (Task, error) {
-	newTasks := Task{
+func (r *taskService) CreateTask(task string) (Task, error) {
+	newTask := Task{
 		ID:     uuid.NewString(),
 		Task:   task,
 		Status: "active",
 	}
-	if err := t.repo.CreateTask(newTasks); err != nil {
+	if err := r.repo.CreateTask(newTask); err != nil {
 		return Task{}, err
 	}
-	return newTasks, nil
+	return newTask, nil
 }
 
-func (t *taskService) GetAllTasks() ([]Task, error) {
-	return t.repo.GetALLTasks()
+func (r *taskService) GetAllTasks() ([]Task, error) {
+	return r.repo.GetAllTasks()
 }
 
-func (t *taskService) GetTaskById(id string) (Task, error) {
-	return t.repo.GetTaskById(id)
+func (r *taskService) GetTaskById(id string) (Task, error) {
+	return r.repo.GetTaskById(id)
 }
 
-func (t *taskService) UpdateTask(id, task string) (Task, error) {
-	newTasks, err := t.repo.GetTaskById(id)
+func (r *taskService) UpdateTask(id, task string) (Task, error) {
+	updateTask, err := r.repo.GetTaskById(id)
 	if err != nil {
 		return Task{}, err
 	}
-	newTasks.Task = task
-
-	if err := t.repo.UpdateTask(newTasks); err != nil {
+	updateTask.Task = task
+	if err := r.repo.UpdateTask(updateTask); err != nil {
 		return Task{}, err
 	}
-	return newTasks, nil
+	return updateTask, nil
 }
-
-func (t *taskService) DeleteTask(id string) error {
-	return t.repo.DeleteTask(id)
+func (r *taskService) DeleteTask(id string) error {
+	return r.repo.DeleteTask(id)
 }
