@@ -15,15 +15,13 @@ import (
 
 func main() {
 	db.InitDB()
-	db.DB.AutoMigrate(&TaskService.Task{})
-	db.DB.AutoMigrate(&UserService.User{})
 
 	repo := TaskService.NewTaskRepository(db.DB)
 	service := TaskService.NewTaskService(repo)
 	handler := handlers.NewTaskHandler(service)
 
 	userRepo := UserService.NewUserRepository(db.DB)
-	userService := UserService.NewUserService(userRepo)
+	userService := UserService.NewUserService(userRepo, service)
 	userhandler := handlers.NewUserHandler(userService)
 
 	e := echo.New()

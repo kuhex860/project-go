@@ -161,7 +161,29 @@ paths:
           description: User deleted successfully
         '404':
           description: User not found
-
+  /users/{id}/tasks:
+      get:
+        summary: Get all tasks for a specific user
+        tags:
+          - users
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+            description: User ID
+        responses:
+          '200':
+            description: A list of tasks belonging to the user
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Task'
+          '404':
+            description: User not found
 components:
   schemas:
     Task:
@@ -169,40 +191,44 @@ components:
       properties:
         id:
           type: string
-          description: Task ID
         task:
           type: string
-          description: Task description
         status:
           type: string
-          description: Task status
+        userId:
+          type: string
+          description: ID of the user who owns the task
       required:
         - id
         - task
         - status
+        - userId
 
     TaskCreate:
       type: object
       properties:
         task:
           type: string
-          description: Task description
         status:
           type: string
-          description: Task status
           default: "active"
+        userId:
+          type: string
+          description: ID of the user to assign the task to
       required:
         - task
+        - userId
 
     TaskUpdate:
       type: object
       properties:
         task:
           type: string
-          description: Updated task description
         status:
           type: string
-          description: Updated task status
+        userId:
+          type: string
+      minProperties: 1
 
     User:
       type: object

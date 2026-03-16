@@ -16,32 +16,28 @@ import (
 
 // Task defines model for Task.
 type Task struct {
-	// Id Task ID
-	Id string `json:"id"`
-
-	// Status Task status
+	Id     string `json:"id"`
 	Status string `json:"status"`
+	Task   string `json:"task"`
 
-	// Task Task description
-	Task string `json:"task"`
+	// UserId ID of the user who owns the task
+	UserId string `json:"userId"`
 }
 
 // TaskCreate defines model for TaskCreate.
 type TaskCreate struct {
-	// Status Task status
 	Status *string `json:"status,omitempty"`
+	Task   string  `json:"task"`
 
-	// Task Task description
-	Task string `json:"task"`
+	// UserId ID of the user to assign the task to
+	UserId string `json:"userId"`
 }
 
 // TaskUpdate defines model for TaskUpdate.
 type TaskUpdate struct {
-	// Status Updated task status
 	Status *string `json:"status,omitempty"`
-
-	// Task Updated task description
-	Task *string `json:"task,omitempty"`
+	Task   *string `json:"task,omitempty"`
+	UserId *string `json:"userId,omitempty"`
 }
 
 // PostTasksJSONRequestBody defines body for PostTasks for application/json ContentType.

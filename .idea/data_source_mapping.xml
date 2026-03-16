@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/migrations/20260316184940_add_user_id_to_tasks.up.sql" value="e1f8b3d2-5af1-451e-86d7-600c873aebe2" />
+  </component>
+</project>
